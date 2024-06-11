@@ -14,17 +14,18 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.Random;
-import java.time.Duration;
-import java.time.Instant;
 
-import static hangman.DatabaseManager.getRandomWordFromApi;
+import static hangman.DatabaseManager.*;
+
 
 public class Controller2 {
+    int count_of_winning=0;
+    int wrong_gusses = 0;
 
-
+    String name ="ss";
     static long endTime;
-    static long startTime;
+    static long startTime =0;
+    long result = (endTime-startTime)/1000000000;
 
     @FXML
     ImageView img;
@@ -34,6 +35,7 @@ public class Controller2 {
     Image image5 = new Image(getClass().getResourceAsStream("images/5.png"));
     Image image6 = new Image(getClass().getResourceAsStream("images/6.png"));
     Image image7 = new Image(getClass().getResourceAsStream("images/7.png"));
+    Image imagewon = new Image(getClass().getResourceAsStream("images/won.jpg"));
 
     @FXML
     TextField tf1;
@@ -60,30 +62,10 @@ public class Controller2 {
     @FXML
     Label hint_label;
 
-    String[] data = {
-            "MEXICO COUNTRY",
-            "HEDWIG BIRD",
-            "KUAKATA BEACH",
-            "CANADA COUNTRY",
-            "DOCTOR PROFESSION",
-            "FOOTBALL GAME",
-            "TEACHER MENTOR",
-            "LEOPARD ANIMAL",
-            "BICYCLE TRANSPORT",
-            "SALMON FISH",
-            "SPARROW BIRD",
-            "PARROTS BIRD",
-            "EAGLE BIRD",
-            "TRAIN TRANSPORT",
-            "SHIP TRANSPORT",
-            "ENGINEER PROFESSION",
-            "BANKER PROFESSION",
-            "CRICKET GAME"
-    };
-    //int random = new Random().nextInt(data.length);
-    //String word_hint = data [random];
-    //String[] split = word_hint.split(" ", 2);
+    
     String word = getRandomWordFromApi ();
+
+
     //String hint_str = split[1];
     int letter_size = word.length();
     public void initialize(){
@@ -112,8 +94,37 @@ public class Controller2 {
             tf8.setVisible(false);
         }
     }
+
+    public boolean win(){
+        String nword =tf1.getText()+tf2.getText()+tf3.getText()+tf4.getText()+tf5.getText()+tf6.getText()+tf7.getText()+tf8.getText();
+        if(nword.contains(word)){
+            System.out.println("won");
+
+            System.out.println(result);
+            //setImage();
+            count_of_winning++;
+            img.setImage(imagewon);
+            endTime = System.nanoTime();
+            result = (endTime-startTime)/1000000000;
+            saveGameInfo(name,word,wrong_gusses,result,true);
+            System.out.println(endTime);
+            System.out.println(endTime-startTime);
+            //System.out.println(startTime+" "+endTime);
+            //System.out.println((endTime-startTime));
+            return true;
+        }
+        return false;
+    }
+    
+    
     public void CheckInput(){
+        if(startTime ==0){
+            startTime = System.nanoTime();
+        }
+
+        System.out.println(startTime);
         String str = input.getText();
+         
         if (word.contains(str)) {
             int index = 0;
             for(int i=0; i<word.length(); i++) {
@@ -135,37 +146,68 @@ public class Controller2 {
             tf2.setText(str);
         else if(index==2)
             tf3.setText(str);
-        else if(index==3)
+        else if(index==3){
             tf4.setText(str);
-        else if(index==4)
+            win();}
+        else if(index==4){
+
             tf5.setText(str);
-        else if(index==5)
+            win();  }
+        else if(index==5){
+
             tf6.setText(str);
-        else if(index==6)
+            win();  }
+        else if(index==6){
+
             tf7.setText(str);
-        else if(index==7)
+            win();  }
+        else if(index==7){
+
             tf8.setText(str);
+            win();  }
+
     }
+
     int life=6;
     public void setImage(){
-        if(life==6){
-            startTime = System.nanoTime();
+
+        if(win()){
+            img.setImage(imagewon);
+            endTime = System.nanoTime();
+        }
+         else if(life==6){
+             wrong_gusses++;
             img.setImage(image2);}
-        else if(life==5)
-            img.setImage(image3);
-        else if(life==4)
+        else if(life==5){
+            wrong_gusses++;
+            img.setImage(image3);}
+        else if(life==4) {
+            wrong_gusses++;
             img.setImage(image4);
-        else if(life==3)
-            img.setImage(image5);
-        else if(life==2)
+        }
+        else if(life==3){
+            wrong_gusses++;
+            img.setImage(image5);}
+
+        else if(life==2) {
+            wrong_gusses++;
             img.setImage(image6);
+        }
         else if(life==1){
+            wrong_gusses++;
             endTime = System.nanoTime();
             System.out.println((endTime-startTime)/1000000000);
+            saveGameInfo(name,word,wrong_gusses,result,false);
 
             img.setImage(image7);}
         life--;
     }
+
+
+
+
+
+
     public void changeScene(ActionEvent event) throws IOException {
 
         Parent parent = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("gameScene.fxml")));

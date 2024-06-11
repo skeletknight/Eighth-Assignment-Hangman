@@ -21,7 +21,8 @@ public class DatabaseManager {
     static String url = "jdbc:postgresql://localhost:5432/postgres";
     static String user = "postgres";
     static String password1 = "1234";
-
+    static int  game_id = 0;
+    static String name1;
 
     static String word;
     public static String getRandomWordFromApi ()
@@ -59,7 +60,33 @@ public class DatabaseManager {
         }
         return "lion";
     }
+
+    public static String getLastInsertedUser() {
+        try (Connection connection = DriverManager.getConnection(url, user, password1)) {
+            String sql = "SELECT user_name, id FROM player ORDER BY id DESC LIMIT 1";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        String lastUsername = resultSet.getString("user_name");
+                        int lastId = resultSet.getInt("id");
+                        System.out.println("Last inserted username: " + lastUsername);
+
+                        System.out.println("Last inserted ID: " + lastId);
+                        return  lastUsername;
+                    } else {
+                        System.out.println("No records found in the table.");
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "sepi";
+    }
+
     public static void saving_user_info(String name, String username, String password) {
+        name1= name;
+
         try (Connection connection = DriverManager.getConnection(url, user, password1)) {
             String sql = "INSERT INTO player (name, user_name, password) VALUES (?, ?, ?)";
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -76,7 +103,7 @@ public class DatabaseManager {
 
     public static boolean check_info(String username, String password) {
         try (Connection connection = DriverManager.getConnection(url, user,password1)) {
-            String sql = "SELECT password FROM users WHERE username = ?";
+            String sql = "SELECT password FROM player WHERE user_name = ?";
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 preparedStatement.setString(1, username);
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -91,10 +118,26 @@ public class DatabaseManager {
         return false; // User not found or incorrect password
     }
 
+    public static void saveGameInfo(String username, String word1, int guesses, long time, boolean win) {
+        try (Connection connection = DriverManager.getConnection(url, user, password1)) {
+            String insertQuery = "INSERT INTO game_infos (user_name, word, word_gusses, time, win) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, word1);
+                preparedStatement.setInt(3, guesses);
+                preparedStatement.setLong(4, time);
+                preparedStatement.setBoolean(5, win);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     public static void main(String[] args){
-        getRandomWordFromApi();
+        getLastInsertedUser();
     }
 
 
